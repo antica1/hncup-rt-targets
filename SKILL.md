@@ -1,511 +1,255 @@
 ---
-name: HNCUP-rt-targets
-description: "原发不明颈部转移癌HNCUP靶区勾画——选择性黏膜、EBV/HPV分层、颈清后逆流规则。True CUP RT target delineation — selective mucosal irradiation."
-version: 1.0.0
-author: Dou Shengjin, Zhu Guopei / Shanghai Ninth People's Hospital
-license: CC BY-NC-SA 4.0
----
-> **原创声明**：本 Skill 所含临床框架为上海交通大学医学院附属第九人民医院口腔颌面头颈肿瘤科放疗组原创知识产权。五大原创框架——间室放疗（门+隔壁）、淋巴逆流规则、QUANTEC 四维批判、口底铁律、化免新辅助后 PORT 降级三梯度——均为九院体系的组成部分。授权采用 CC BY-NC-SA 4.0（署名-非商业-相同方式共享）。引用：朱国培, 九院放疗组. 头颈肿瘤放疗靶区勾画 Skill 系列 [OL]. GitHub: antica1, 2026.
-
-
-
-# 颈部原发不明转移性癌 — 放疗靶区勾画指南
-
-## Overview
-
-Cervical carcinoma of unknown primary (CUP) is defined as histologically confirmed metastatic carcinoma in cervical lymph nodes for which no primary tumor is identified despite exhaustive diagnostic workup. 
-
-In China, the epidemiological profile differs fundamentally from Western populations: **nasopharyngeal carcinoma (NPC)** is endemic, and a substantial proportion of cervical CUP cases represent occult NPC. This mandates a diagnostic and therapeutic strategy distinct from international guidelines.
-
-This guide is based on clinical experience at Shanghai Ninth People's Hospital and published work (Oncotarget 2016; Cancer Medicine 2020).
-
+name: head-neck-dvh-review
+description: "One-glance DVH plan acceptability assessment for HEAD & NECK radiotherapy — priority-graded OAR constraints (ideal/acceptable tiers), complete SBRT tables (1-15fx from Timmerman 2022), violation severity grading, trade-off decision rules, and actionable dual-report generation."
+version: 1.3.0
+author: Zhu Guopei / Shanghai Ninth People's Hospital
+license: MIT
+metadata:
+  hermes:
+    tags: [head-neck, radiotherapy, dvh-plan-review, SBRT, OAR-constraints]
+    triggers_on: [DVH, 计划审核, 物理师审核, 计划评估, 剂量约束, OAR审核, 靶区覆盖, 脊髓约束, 脑干约束, 视交叉约束, 腮腺约束, SBRT约束, QUANTEC, 双轨制, plan review, plan check, dose constraint, DVH review]
+    references: ["Timmerman R. IJROBP 2022;112(1):4-21", "H&N IMRT clinical protocol OAR priority table"]
 ---
 
-## Section 0 — Core Principles: How We Differ from International Guidelines
+# 头颈肿瘤放疗计划 DVH 快速审核
 
-| Principle | Western / NCCN Approach | Ninth Hospital Approach |
-|-----------|------------------------|------------------------|
-| **Diagnostic threshold** | Includes cases where primary is "suspected but not proven" | True CUP only: **exhaustive efforts must have failed to find any primary** |
-| **Epidemiology** | HPV+ oropharyngeal cancer dominates | EBV+ nasopharyngeal carcinoma is the leading occult source |
-| **Mucosal irradiation** | Whole pharyngeal axis + oral cavity (pan-mucosal) | **Selective mucosal irradiation** — only the likely origin site(s) |
-| **Neck irradiation** | Bilateral neck (often) | **Ipsilateral neck only** unless contralateral nodes are positive |
-| **Surgical approach** | Neck dissection as first step | Two-step: Step 1 exclude NPC → Step 2 selective neck dissection + mucosal RT |
+## 铁律清单
 
----
+| # | 铁律 | 触发条件 |
+|---|------|---------|
+| 1 | 硬约束一票否决（脑干≤54/脊髓≤45/视交叉≤54） | 任何DVH审核开始时首先检查 |
+| 2 | 双轨制（物理师筛子+医生裁决） | 计划报告生成流程 |
+| 3 | QUANTEC四维批判（部分容积/分次BED/再程间隔/年龄） | 任何约束超标需修正判断时 |
+| 4 | SBRT >6 Gy/fx 时BED失真 | SBRT方案评估 |
+| 5 | 靶区覆盖优先于软约束 | PTV D98% vs 下颌骨/腮腺冲突 |
+| 6 | 瘫痪 > 口干 > ORN | 冲突裁决优先级排序 |
+| 7 | BED修正因子 | 分次剂量<2 Gy / 部分容积 / 姑息老年时 |
+| 8 | 冲突裁决铁律：硬约束 > 靶区 > 软约束 > 优化目标 | 任何DVH冲突裁决 |
 
-## Section 1 — Definition: True CUP vs. Pseudo-CUP
+## 物理师和住院医生的计划审核卡片
 
-### 1.1 True CUP — Strict Diagnostic Criteria
-
-A case qualifies as true CUP only when ALL of the following have been exhausted without identifying a primary:
-
-| Diagnostic Step | Modality |
-|----------------|----------|
-| Comprehensive clinical exam | Including fiberoptic nasopharyngoscopy, laryngoscopy, and oral cavity palpation |
-| Cross-sectional imaging | Contrast-enhanced MRI of the head and neck (preferred) or CT with contrast |
-| PET/CT | FDG PET/CT from skull base to thighs |
-| Panendoscopy with directed biopsies | Including bilateral nasopharyngeal biopsies, tonsillectomy (or deep tonsil biopsies), base of tongue biopsies, and biopsies of any suspicious mucosal areas |
-| Viral testing | EBV DNA (plasma) and HPV DNA / p16 IHC on nodal tissue |
-
-**Cases that suspect a primary but fail to biopsy it are NOT true CUP.** If imaging shows any mucosal irregularity, asymmetry, or suspicious area — even if biopsy was negative — the case should be managed as that suspected primary, NOT as CUP.
-
-### 1.2 The Chinese Epidemiological Reality
-
-```
-                     Western CUP               Chinese CUP
-                         │                         │
-              ┌──────────┴──────────┐    ┌─────────┴─────────┐
-              │                     │    │                   │
-         HPV+ Oropharynx       Others    EBV+ NPC      HPV+ Oropharynx
-           (~60-70%)          (~30-40%)  (~50-60%)      (~20-30%)
-                                              │
-                                    Requires different
-                                    diagnostic & therapeutic
-                                    strategy from the outset
-```
+> 本 Skill 专用于头颈肿瘤放疗（鼻咽癌、口腔癌、口咽癌、喉癌、下咽癌、唾液腺肿瘤等）。
+> **v1.3.0 新增**：OAR 优先级分层 + 理想/可接受双轨约束 + 完整 SBRT 量表（Timmerman 2022）。
+> **不适用于胸/腹/盆部肿瘤，不适用于儿童肿瘤。**
 
 ---
 
-## Section 2 — Diagnostic Algorithm: The Two-Step Decision Process
+## 一、五步审核法
 
-### Step 1: Rule Out Occult Nasopharyngeal Carcinoma
+> **⚠️ 重要前提**：所有 OAR 限量值均来自 QUANTEC 等综述及临床共识，其原始数据多为**动物模型外推**。脊髓 ≤45 Gy = 5% 的概率发生脱髓鞘病变，不是"45 Gy 以下安全、45.1 Gy 就出事"。这些数字是**群体概率**，不是**个体阈值**。
 
-This is the single most important decision point in the Chinese population. The following features strongly suggest an NPC origin:
+### 第 1 步：硬约束——"一票否决"（常规分割 30-35fx）
 
-#### 2.1 Nodal Location Clues
+| 优先级 | OAR | 理想限量 | 可接受剂量 | 测量点 | 超了 → |
+|:--:|-----|---------|----------|------|:--:|
+| **1** | **脑干** | ≤ 54 Gy | < 60 Gy（部分容积/年轻根治） | D0.03cc | ❌ 退回 |
+| **1** | **脊髓** | ≤ 45 Gy | < 50 Gy（部分容积/根治） | D0.03cc | ❌ 退回 |
+| **1** | **视交叉** | ≤ 54 Gy | < 60 Gy（NPC 海绵窦侵犯时） | D0.03cc | ❌ 退回 |
+| **1** | **视神经** | ≤ 54 Gy | < 60 Gy | D0.03cc | ❌ 退回 |
+| **1** | **晶状体** | ≤ 6 Gy | < 15 Gy | D0.03cc | ❌ 退回 |
 
-| Cervical Node Location | Most Likely Primary Origin |
-|------------------------|---------------------------|
-| **Level IIb** (posterior to IJV) | Nasopharynx, oropharynx |
-| **Level V** (posterior triangle, especially upper V) | **Nasopharynx** (highly suggestive) |
-| **Retropharyngeal nodes** (C1-C3 level) | **Nasopharynx** (pathognomonic) |
-| **High cervical nodes above C1 level** | **Nasopharynx** |
-| **Level IIa** | Multiple possible origins (NPC, OPC, oral cavity) |
-| **Level Ib** | Oral cavity (anterior), submandibular gland |
-| **Level III / IV** (isolated, no upper cervical nodes) | Hypopharynx, larynx, thyroid, esophagus |
+> **双轨逻辑**："理想限量"= 标准情况下应力争达到。"可接受剂量"= 经修正因子（1B步）评估后，特定场景下可放宽至的上限。**不意味着自动接受——需要逐例判定并记录理由。**
 
-#### 2.2 Anatomical Basis: Why Pharyngeal Primaries Are More Easily Hidden
+### 第 1B 步：约束修正因子
 
-There is a fundamental biological difference between pharyngeal and oral cavity mucosa that explains the high prevalence of occult pharyngeal primaries in CUP:
+| 修正因子 | 条件 | 修正方向 | 示例 |
+|---------|------|---------|------|
+| **分次剂量 <2 Gy** | OAR 实际单次剂量低于 2 Gy/fx | **放宽** | 脊髓 Dmax 47 Gy @1.67 Gy/fx → BED 等效 43 Gy |
+| **部分容积** | 仅 D0.1cc 超标，非 D2cc | **放宽** | Dmax 50 Gy 仅 0.2% 脊髓病变风险 |
+| **根治性+年轻** | 生存获益 >> OAR 损伤 | **可放宽** ±3-5 Gy | |
+| **姑息/老年/合并症** | OAR 损伤 >> 生存 | **收紧** ±3-5 Gy | |
+| **再程照射** | 有既往 RT 史 | **必须收紧** | 累积 BED<100 Gy₂ |
+| **脑干前表面** | 仅前缘受照（NPC 常见） | **放宽** | 55 Gy 可接受 |
 
-| Feature | Pharyngeal Mucosa (Nasopharynx, Oropharynx, Hypopharynx) | Oral Cavity Mucosa |
-|---------|----------------------------------------------------------|---------------------|
-| **Epithelial thickness** | Thick, multi-layered, with abundant submucosal lymphoid tissue (Waldeyer's ring) | Thin, stratified squamous epithelium directly overlying muscle/bone |
-| **Lymphatic density** | Extremely rich — the pharynx is the most lymph-rich mucosal surface in the head and neck | Sparse to moderate |
-| **Surface visibility** | Deep, recessed locations (Rosenmüller fossa, tonsillar crypts, pyriform sinus apex) | Fully visible on routine oral examination |
-| **Submucosal spread potential** | High — tumor can spread extensively beneath an intact mucosal surface | Low — tumor becomes exophytic or ulcerated early, visible to the naked eye |
-| **Detection threshold** | A 5-10 mm submucosal tumor can be invisible on endoscopy and MRI | A 3-5 mm lesion is usually visible and palpable |
+### 第 2 步：靶区覆盖
 
-**Clinical consequence**: A microscopic primary measuring only a few millimeters can already produce clinically evident cervical lymph node metastases when located in the pharynx, yet remain completely undetectable on every imaging and endoscopic modality. This is exceedingly rare for oral cavity primaries, which declare themselves at a much smaller size.
+| 指标 | 理想 | 可接受 | 不达标 → |
+|------|------|--------|---------|
+| PTV D98% | ≥ 95% 处方剂量 | ≥ 93% | ⚠️ 优先重优化 |
+| GTV min | ≥ 98% 处方剂量（68.6 Gy @70Gy） | ≥ 95%（66.5 Gy） | 🔴 GTV 内不可接受冷点 |
+| PTV D2% | ≤ 107% 处方剂量 | ≤ 110%（热点在 PTV 内） | ⚠️ 查热点位置 |
+| PTV V95% | ≥ 99% PTV >93% 剂量 | ≥ 95% PTV >95% 剂量 | ⚠️ 查冷点位置 |
 
-#### 2.3 Site-Specific Lymphatic Drainage Atlas — Reverse-Engineering the Primary
+> **D98% < 93% → 靶区覆盖不足，先改这个。**
 
-Each head and neck squamous cell carcinoma subsite has its own characteristic pattern of first-echelon and subsequent lymph node drainage. When a cervical node is positive, its anatomical level provides strong probabilistic evidence about the primary site:
+### 第 3 步：软约束——优先级分层（常规分割 30-35fx）
 
-| Primary Site (Subsite) | First-Echelon Nodes | Second-Echelon / Advanced | Key Discriminating Features |
-|------------------------|---------------------|--------------------------|----------------------------|
-| **Nasopharynx** | RP (lateral), IIb, upper V | IIa, III, IV, lower V | RP involvement is nearly pathognomonic; Level V involvement with no oral/oropharyngeal primary |
-| **Soft palate** | IIa, IIb, RP | III | Often bilateral even for lateralized primaries |
-| **Tonsil** | IIa, IIb | III, RP | Level II predominance; RP possible with T3-T4 |
-| **Base of tongue** | IIa, IIb, III | RP, IV | Level II-III transition zone involvement |
-| **Pharyngeal wall (OPC)** | RP, IIa, IIb | III | RP involvement is common |
-| **HPV+ Oropharynx (any subsite)** | IIa, IIb, III | IV, RP | Often cystic nodal appearance on imaging |
-| **Oral tongue (anterior 2/3)** | Ib, IIa, III | Contralateral Ib (midline tumors) | Level Ib involvement with no submandibular gland primary |
-| **Floor of mouth** | Ia, Ib | IIa | Ia involvement is suggestive |
-| **Buccal mucosa** | Ib, IIa | — | Primarily Level Ib |
-| **Lower gingiva** | Ib, IIa | — | Perineural spread along inferior alveolar nerve |
-| **Hard palate** | IIa (via palatine lymphatics) | RP (via V2 pathway) | Level II without obvious oropharyngeal primary |
-| **Supraglottic larynx** | IIa, IIb, III | IV, VI | Bilateral drainage even for lateralized tumors; Level III is key |
-|| **Glottic larynx (T1-T2)** | **None** — true vocal cords have NO intrinsic lymphatics | VI (Delphian node), only when advanced | **Critical for CUP**: glottic primaries are essentially excluded as CUP sources. The vocal cord is lymphatic-free; a glottic primary does not metastasize to neck nodes until it invades the paraglottic space or crosses the ventricle into the supraglottis (T3-T4). If a neck node is present with no visible laryngeal mass, the primary is NOT glottic. |
-| **Subglottic larynx** | VI, IV | VII (upper mediastinum) | Level VI + Level IV without upper cervical nodes |
-| **Hypopharynx (pyriform sinus)** | IIa, IIb, III, RP | IV, VI, VII | RP + Level III-IV with no nasopharyngeal primary |
-| **Hypopharynx (posterior wall)** | RP, II, III | IV | RP involvement characteristic |
-| **Hypopharynx (postcricoid)** | VI, RP, IV | VII | Level VI involvement prominent |
-| **Thyroid (papillary)** | VI, III, IV | II, VII | Level VI is classic; calcifications on CT |
-| **Skin (scalp/face)** | V, IIb (parotid nodes) | — | Level V + parotid with no mucosal primary |
+| 优先级 | OAR | 理想限量 | 可接受剂量 | 测量点 |
+|:--:|-----|---------|----------|------|
+| **2** | **颞叶** | ≤ 65 Gy（早期）/ ≤ 70 Gy（晚期） | ≤ 72 Gy | D0.03cc |
+| **3** | **臂丛** | ≤ 66 Gy | < 70 Gy | D0.03cc |
+| **3** | **眼球** | ≤ 35 Gy（平均） | < 50 Gy | D0.03cc |
+| **4** | **对侧腮腺** | ≤ 26 Gy（平均） | < 30 Gy（至少一个腺体） | Dmean |
+| **4** | **患侧腮腺** | ≤ 30 Gy（平均） | — | Dmean |
+| **4** | **下颌骨 + TMJ** | ≤ 70 Gy | < 75 Gy | D2% |
+| **4** | **下颌骨 V60Gy** | < 30% | < 40%（牙列完整者偏严） | V60Gy |
+| **4** | **耳蜗** | ≤ 45 Gy（平均） | < 55 Gy | Dmean |
+| **4** | **声门型喉** | ≤ 35 Gy（平均） | < 50 Gy | D2%（保声病例测 Dmean） |
+| **4** | **口腔（非PTV）** | ≤ 40 Gy（平均） | < 50 Gy | Dmean |
+| **4** | **咽缩肌** | ≤ 50 Gy（平均） | < 55 Gy | Dmean |
+| **4** | **下颌下腺** | ≤ 35 Gy（平均） | — | Dmean |
+| **4** | **环后咽/食管（野内）** | ≤ 45 Gy（平均） | < 55 Gy | Dmean |
+| **4** | **垂体/下丘脑** | ≤ 60 Gy | < 65 Gy | D0.03cc |
+| **4** | **甲状腺** | V30 < 70% | V50 > 10 cm³ | V30/V50 |
+| **4** | **颈动脉** | Dmax < 50 Gy | — | Dmax（全喉切除后尤严） |
+| **4** | **气管** | V50 < 50% | — | V50 |
 
-#### 2.4 Special Lymphatic Zones — Critical Diagnostic Clues
+> **优先级含义**：1=一票否决；2=高危（尽可能达标）；3=中危（超标需记录）；4=优化目标。
 
-##### 2.4.1 The Glottic Exclusion Principle
+### 第 4 步：修正区
 
-True vocal cords are **lymphatic-free**. The glottic mucosa contains no intrinsic lymphatic channels. A glottic SCC confined to the cord (T1-T2) cannot produce cervical lymph node metastases. Lymphatic spread from the glottis occurs only when the tumor invades:
+| 问题 | 判断 | 行动 |
+|------|------|------|
+| 热点在哪？ | 在 PTV 内 → 可接受。在 OAR 内 → 优化。在正常组织 → 需要改 |
+| 冷点在哪？ | 在 PTV 边缘 → 可接受。在 GTV 内 → 不可接受 |
+| DVH 曲线顺滑吗？ | 阶梯状 → 多叶光栅或优化问题 | 让物理师检查 |
+| 几个弧？ | 单弧 OAR 剂量高 → 加一个非共面弧 |
 
-- **Paraglottic space** (T3) → access to supraglottic lymphatic network
-- **Across the ventricle into the supraglottis** → access to Level II-III drainage
-- **Through the anterior commissure into the subglottis** → access to Level VI/VII
+### 第 5 步：冲突裁决
 
-**Clinical implication for CUP**: If a patient presents with a palpable cervical lymph node and no visible laryngeal mass on laryngoscopy, the primary is **NOT** a glottic cancer. A glottic primary large enough to metastasize is large enough to be visible. Unlike pharyngeal primaries that can hide beneath thick mucosa, the vocal cord's thin mucosa and exposed surface make a T3+ glottic tumor impossible to miss. Therefore, **the glottis should be excluded from the mucosal CTV in all CUP cases** — unless the patient specifically has a visible, biopsy-proven glottic tumor.
+| 情景 | 裁决 | 原因 |
+|------|------|------|
+| PTV D98% 不达标 vs 下颌骨 Dmax 超标 | **保护靶区** | ORN 有补救；复发没有 |
+| PTV D98% 不达标 vs **脑干/脊髓 Dmax 超标** | **保护 OAR** | 瘫痪比复发更可怕 |
+| 对侧腮腺 Dmean 超标 vs 靶区勉强达标 | **接受腮腺超标** | 口干可控；靶区不够不行 |
+| 咽缩肌 Dmean 超标 vs 靶区边缘略不足 | **保护靶区** | 吞咽困难有康复；复发没有 |
+| 颞叶超标 vs 靶区充分（NPC） | **接受颞叶**（≤72 Gy 可接受），记录 | NPC 颞叶紧邻鼻咽 |
+| 视交叉 55-56 Gy vs 靶区充分（NPC 海绵窦） | **接受**——必须记录 | 侵犯海绵窦时无法避免 |
 
-This is consistent with the anatomical principle in Section 2.2: the pharynx hides primaries; the oral cavity and glottis do not. The glottis is the "oral cavity equivalent" of the larynx — an exposed, thin, lymphatic-sparse surface where tumors declare themselves early.
-
-##### 2.4.2 Superficial Transit Nodes — Levels VIII, IX, X
-
-These nodal stations communicate between the superficial and deep lymphatic systems. Under normal physiological conditions, they function as **transit stations** — lymphatic fluid passes through them on its way to deep cervical nodes, but they rarely become clinically enlarged because flow-through is unimpeded.
-
-| Level | Location | Normal Function | When They Enlarge |
-|-------|----------|----------------|-------------------|
-| **VIII** | Parotid region (superficial parotid nodes, preauricular nodes) | Drains scalp, face, external ear → deep cervical system | Post-neck-dissection: disrupted downward flow → retrograde filling |
-| **IX** | Upper carotid sheath, near skull base/jugular foramen | Transition zone between intracranial and extracranial lymphatics | Post-neck-dissection: upward retrograde flow along the carotid sheath |
-| **X** | Retroauricular / occipital region | Drains posterior scalp → deep cervical system | Post-neck-dissection: collateral pathway activation |
-
-**Clinical implication for CUP**:
-
-- In the **primary/definitive setting** (no prior neck surgery), these transit nodes are almost never involved and do NOT require prophylactic irradiation.
-- In the **post-neck-dissection setting**, especially with heavy nodal burden (ECE+, ≥3 LN+, LN ≥3 cm), the disrupted downward lymphatic gradient may cause retrograde or collateral filling of these stations. This is the same mechanism described in the "retrograde flow rule" (Section 3.5 extension). In this scenario, **Levels VIII and IX should be considered for inclusion in the ipsilateral CTV**.
-
-##### 2.4.3 Level VI — The Anterior Oral Cavity Beacon
-
-Level VI (anterior cervical compartment) receives lymphatic drainage primarily from:
-
-- **Anterior floor of mouth**
-- **Anterior lower gingiva / mandibular alveolus**
-- **Anterior oral tongue tip**
-- **Sublingual gland**
-
-Level VI involvement is **rare** in most HNSCC presentations. When it does appear, it carries strong localizing value:
-
-| Level VI Finding | Most Likely Source |
-|------------------|-------------------|
-| Isolated Level VI node | Anterior oral cavity (floor of mouth, anterior tongue, lower anterior gingiva) |
-| Level VI + Level IV (no upper cervical nodes) | Subglottic larynx, cervical esophagus, thyroid |
-| Level VI + Level II-III | Supraglottic larynx, or advanced oral cavity with downward spread |
-
-**Pitfall**: In isolation, Level VI involvement without upper cervical nodes is a very specific but uncommon presentation. It should prompt a focused re-examination of the anterior oral cavity and laryngeal subglottis, but in the absence of a visible primary, the mucosal CTV should cover the anterior floor of mouth (crossing midline at the tongue base, per Section 3.3) and the subglottic larynx.
-
-#### 2.5 Ancillary Testing
-
-| Test | NPC-indicative result | Action if positive |
-|------|----------------------|--------------------|
-| **Plasma EBV DNA** | Detectable or elevated (>0 copies/mL) | Strongly favors NPC origin → proceed as occult NPC |
-| **Nodal tissue EBER (ISH)** | Positive | Confirms EBV association → treat as NPC |
-| **Nodal tissue p16 IHC** | Positive | Suggests HPV+ OPC (but note: a subset of NPC is also p16+) |
-| **MRI nasopharynx** | Asymmetry, mucosal irregularity | Even if biopsy negative, consider NPC treatment |
-
-#### 2.3 Decision Branch: NPC Pathway
-
-```
-If ANY of the following are present:
-  ├── Level IIb, V, or RP nodal involvement
-  ├── Level above C1 involvement
-  ├── Plasma EBV DNA positive
-  └── Nodal tissue EBER positive
-
-      ↓
-
-TREAT AS OCCULT NASOPHARYNGEAL CARCINOMA
-
-      ↓
-  ┌── Nasopharyngeal irradiation (full NPC target volumes)
-  ├── Bilateral neck irradiation (as per NPC protocol)
-  ├── Chemotherapy as indicated (concurrent ± induction, per NPC stage)
-  └── NO neck dissection required unless bulky/multiple nodes
-```
-
-### Step 2: If NPC Is Ruled Out — Selective Mucosal Irradiation
-
-If NPC has been excluded through the above pathway:
-
-1. **Selective ipsilateral neck dissection** (levels dictated by nodal location)
-2. **Postoperative selective mucosal irradiation** (see Section 3)
-3. **Ipsilateral neck irradiation only** (unless contralateral nodes are positive)
+> **裁决铁律**：硬约束 > 靶区覆盖 > 软约束 > 优化目标
 
 ---
 
-## Section 3 — Selective Mucosal Irradiation: The Ninth Hospital Technique
+## 二、违规严重度分级
 
-### 3.1 The Problem with Pan-Mucosal Irradiation
-
-International guidelines often recommend irradiating the **entire pharyngeal axis** (nasopharynx + oropharynx + hypopharynx + larynx) plus the oral cavity. This approach:
-
-- Results in severe acute mucositis (Grade 3-4 in 40-60% of patients)
-- Causes long-term xerostomia and dysphagia
-- Irradiates mucosa that has a near-zero probability of harboring the primary
-
-### 3.2 The Selective Mucosal Principle
-
-The primary in CUP is, by definition, **microscopic** — too small to be seen on imaging or endoscopy. It is almost certainly confined to **one anatomical subsite**. Irradiating only the likely subsite(s) achieves local control rates approaching **100%** while dramatically reducing toxicity.
-
-### 3.3 The Four Crossing-Midline Mucosal Structures
-
-Only four mucosal structures in the head and neck normally cross the midline. These define the boundaries for contralateral extension of the CTV:
-
-| Structure | Crossing Pattern | Clinical Implication |
-|-----------|-----------------|---------------------|
-| **1. Nasopharyngeal roof / posterior wall** | Midline structure by nature | CTV extends across midline to cover the contralateral Rosenmüller fossa |
-| **2. Soft palate / hard palate** | Continuous across midline | CTV extends 1-2 cm past midline |
-| **3. Tongue base / oral tongue / floor of mouth** | Lingual septum is incomplete anteriorly | CTV extends across midline for tongue base primaries |
-| **4. Aryepiglottic fold / epiglottis** | Epiglottis is a midline structure | CTV can cross to contralateral side if supraglottic origin suspected |
-
-**Critical rule**: The mucosal CTV crosses the midline at these four structures — but **the neck CTV remains ipsilateral**. Contralateral neck irradiation is performed ONLY when contralateral nodes are pathologically positive.
-
-### 3.4 Site-Specific Mucosal CTV Templates
-
-#### Suspected NPC Origin (most common in Chinese CUP)
-
-| PTV | Coverage | Dose |
-|-----|----------|------|
-| PTV-70 | Nasopharynx (bilateral, including both Rosenmüller fossae) | 69.96 Gy / 33 fx |
-| PTV-63 | High-risk CTV: parapharyngeal space, skull base | 63 Gy / 33 fx |
-| PTV-56 | Low-risk CTV: bilateral II-V + RP (standard NPC field) | 56 Gy / 33 fx |
-
-#### Suspected Oropharyngeal Origin
-
-| PTV | Coverage | Dose |
-|-----|----------|------|
-| PTV-66 | Ipsilateral tonsillar fossa + tongue base + soft palate (crosses midline 1-2 cm at soft palate) | 66 Gy / 33 fx |
-| PTV-60 | Ipsilateral II-IV (unilateral neck only) | 60 Gy / 33 fx |
-| Contralateral neck | NOT irradiated unless pathologically positive | — |
-
-#### Suspected Oral Cavity Origin
-
-| PTV | Coverage | Dose |
-|-----|----------|------|
-| PTV-66 | Ipsilateral oral tongue + floor of mouth (crosses midline at tongue base) | 66 Gy / 33 fx |
-| PTV-60 | Ipsilateral Ib + II + III (unilateral neck only) | 60 Gy / 33 fx |
-| Contralateral neck | NOT irradiated unless pathologically positive | — |
-
-#### Suspected Hypopharyngeal / Laryngeal Origin
-
-| PTV | Coverage | Dose |
-|-----|----------|------|
-| PTV-66 | Ipsilateral pyriform sinus + ipsilateral aryepiglottic fold (crosses midline via epiglottis) | 66 Gy / 33 fx |
-| PTV-60 | Ipsilateral II-IV + RP (unilateral neck only) | 60 Gy / 33 fx |
-
-### 3.5 The Ipsilateral Neck Principle
-
-Since the primary is microscopic (T0 or Tis-equivalent), the risk of contralateral neck metastasis from the primary itself is negligible. Bilateral neck irradiation is needed only when:
-
-| Scenario | Neck RT |
-|----------|---------|
-| NPC pathway | Bilateral (standard NPC protocol) |
-| Non-NPC pathway + contralateral cN0 | **Ipsilateral only** |
-| Non-NPC pathway + contralateral cN(+) | Bilateral |
+| 级别 | 标志 | 定义 | 例子 | 行动 |
+|------|------|------|------|------|
+| **🔴 致命** | Hard Fail | 硬约束超可接受上限 | 脑干 62 Gy | 直接退回 |
+| **🟠 严重** | Soft Fail | 软约束超可接受上限 | 对侧腮腺 Dmean 32 Gy | 尝试再优化，记录理由 |
+| **🟡 轻度** | Near-limit | 超理想限量但在可接受范围内 | 脑干 57 Gy（<60 Gy） | 逐例判定，记录 |
+| **🟢 合格** | Pass | 全达标 | — | 签字 |
 
 ---
 
-## Section 4 — Treatment Outcomes (Ninth Hospital Data)
+## 三、计划审核报告的双轨制
 
-Based on the two-step decision process and selective mucosal irradiation (Dou S et al, Oncotarget 2016; Cancer Med 2020):
+### 第一轨：给物理师
 
-| Outcome | Result |
-|---------|--------|
-| **Mucosal control rate** | **~100%** (no emergence of primary in irradiated mucosa) |
-| **Emergence of new primary outside RT field** | **~0%** in the NPC pathway; rare in non-NPC pathway |
-| **Acute toxicity (≥Grade 3 mucositis)** | **Significantly lower** than pan-mucosal irradiation |
-| **Late xerostomia** | Markedly reduced (ipsilateral parotid spared in unilateral cases) |
-| **Overall survival** | Comparable or superior to pan-mucosal approaches in published series |
+**靶区覆盖缺失分析**：
 
----
+| 缺失位置 | 原因 | 严重度 | 行动 |
+|---------|------|--------|------|
+| 体表边缘 | PTV 扩展到皮肤外 | 🟡 可接受 | 记录，不改 |
+| 空腔表面 | PTV 进入空气腔 | 🟡 可接受 | 注明 D98% 在空腔层面 |
+| 骨-软组织界面 | 剂量重建误差 | 🟠 需核查 | Dmean 辅助判断 |
+| 靶区缩窄处 | OAR 之间被"挤压" | 🔴 重优化 | 报位置+OAR 约束过紧 |
+| 多靶区交界 | SIB 高剂量区覆盖低剂量区边缘 | 🟡 | 核对处方 |
 
-## Section 5 — Dose and Fractionation
+**OAR 超标修复提示**：
 
-| Setting | Dose | Fractionation |
-|---------|------|---------------|
-| Occult NPC pathway (nasopharynx) | 69.96 Gy | 33 fx (SIB) |
-| Selective mucosal irradiation (non-NPC) | 66 Gy | 33 fx |
-| Ipsilateral elective neck | 54-60 Gy | 30-33 fx |
-| Contralateral neck (if indicated) | 54 Gy | 30-33 fx |
-| Neck dissection bed (high-risk) | 60-66 Gy | 30-33 fx |
+| OAR | 超标量 | 可能原因 | 建议修复 |
+|-----|--------|---------|---------|
+| 腮腺 Dmean | +5 Gy | 靶区包裹腮腺深叶 | ① 造 OAR ring ② 加非共面弧 ③ 接受 |
+| 脑干/脊髓 | +2-3 Gy | 靶区紧贴 | ① 牺牲靶区边缘 ② BED 修正判断 |
+| 下颌骨 Dmax | +5 Gy | 靶区紧贴骨面 | ① 加 PRV ② 收紧热点约束 |
+| 颞叶 | +3-5 Gy | NPC 靶区紧邻 | ① BED 修正 ② 可接受（≤72 Gy） |
 
----
+### 第二轨：给医生
 
-## Section 6 — OAR Constraints for CUP RT
+**常见临床困境裁决**：
 
-Since the mucosal target is significantly smaller than pan-mucosal irradiation, OARs are better protected:
+**困境 1：脑干 Dmax = 57 Gy → 理想超标但未超可接受（60 Gy）**
 
-| OAR | Constraint | Why Better Protected |
-|-----|-----------|---------------------|
-| Contralateral parotid | ≤ 26 Gy (easily achieved) | Contralateral neck is not irradiated |
-| Ipsilateral parotid | ≤ 30-35 Gy | Smaller mucosal target → less exit dose |
-| Pharyngeal constrictors | ≤ 50 Gy | Not the entire pharyngeal axis is in the field |
-| Oral cavity (uninvolved mucosa) | ≤ 30-40 Gy | Only suspected subsite is irradiated |
-| Spinal cord | ≤ 45 Gy | Standard |
-| Brainstem | ≤ 54 Gy | Standard |
+判断链：① 级别=🟡 轻度 ② 修正：仅前表面部分容积？是→放宽 ③ BED 等效计算→实际可能<54 Gy ④ 结论：可接受。记录理由。
 
----
+**困境 2：颞叶 D0.03cc = 70 Gy（晚期 NPC）→ 可接受？**
 
-## Section 7 — Integration with International and Domestic Guidelines
+判断链：① NPC 颞叶紧邻鼻咽→不可避免 ② ≤72 Gy 在可接受范围内 ③ 记录"晚期 NPC，颞叶紧邻靶区，70 Gy 可接受" ④ 随访关注但无需退回。
 
-This section demonstrates how the Ninth Hospital approach aligns with and extends major international and Chinese clinical practice guidelines for cervical CUP. **There are no contradictions** — the Ninth Hospital strategy is a logical refinement that addresses the specific epidemiological realities of the Chinese population while remaining consistent with the core principles of all major guidelines.
+**困境 3：声门喉 Dmean = 42 Gy（保声病例）→ 可接受？**
 
-### 7.1 Guideline Summary and Alignment Table
-
-| Guideline / Consensus | Year | Core Recommendation | Ninth Hospital Alignment |
-|------------------------|------|---------------------|--------------------------|
-| **NCCN (Head and Neck Cancers: Occult Primary)** | 2025 | ① Exhaustive workup (EUA, tonsillectomy, BOT biopsies, NP biopsies) ② Neck dissection ± mucosal RT ③ Pan-pharyngeal mucosal RT considered | ✅ Same exhaustive workup — but adds: EBV DNA, EBER testing as mandatory (not mentioned in NCCN due to low NPC prevalence in the West) |
-| **AHNS Guideline (Head Neck, PMID:29159978)** | 2018 | ① Systematic diagnostic evaluation ② Neck dissection as primary surgical management ③ Adjuvant RT decisions based on nodal stage | ✅ Consistent — but adds: nodal location-based algorithm for NPC screening before neck dissection |
-| **CSCO 头颈肿瘤诊疗指南** | 2025 | ① PET/CT + 内镜 + 双侧鼻咽活检 + 扁桃体切除 ② 颈部淋巴结清扫 ± 术后放疗 ③ 黏膜腔照射（高危区选择性照射） | ✅ Fully aligned — CSCO already recommends selective mucosal irradiation for the Chinese population |
-| **中国医师协会放疗分会 头颈肿瘤共识** | 2023 | ① 强调鼻咽镜检查+EBV检测的重要性 ② 推荐对可疑黏膜区进行选择性照射 ③ 双侧颈部照射仅在高危时 | ✅ Consistent — our two-step NPC-first algorithm operationalizes the Consensus' emphasis on NPC screening |
-| **UK National Guidelines (NICE / BAHNO)** | 2020 | ① EUA + ipsilateral tonsillectomy + BOT mucosectomy ② PET/CT ③ Pan-mucosal RT or neck dissection ± RT | ✅ Approach differs in pan-mucosal RT — but this reflects different epidemiology (UK: 70% HPV+ OPC; China: 50%+ NPC) |
-| **ASCO/ASTRO (Emerging Consensus)** | 2024 | ① HPV/p16 testing on nodal tissue ② Nodal location guides primary site suspicion ③ De-escalation of mucosal RT volume being investigated | ✅ Fully aligned — ASCO's "nodal location → primary suspicion" principle is exactly what our algorithm formalizes |
-| **ESMO (SCCUP genomic landscape, PMID:40499462)** | 2025 | Genomic profiling may aid tissue-of-origin identification; current clinical utility limited | ✅ Consistent — genomic testing is complementary to, not a replacement for, anatomical reasoning |
-
-### 7.2 The Ninth Hospital Approach as a Logical Extension
-
-Rather than contradicting any guideline, the Ninth Hospital approach addresses three gaps in the existing literature:
-
-#### Gap 1: Western guidelines do not account for high NPC prevalence
-
-NCCN, AHNS, and UK guidelines were developed in populations where HPV+ oropharyngeal cancer accounts for 60-70% of CUP cases. NPC is rare (<5%) in these populations, so EBV testing and nasopharyngeal-focused investigation receive minimal emphasis. In China, where NPC is endemic and occult NPC may account for 50%+ of CUP cases, the diagnostic algorithm must be restructured to place NPC screening as the **first decision point**, not an afterthought.
-
-#### Gap 2: Pan-mucosal RT is a one-size-fits-all solution with significant toxicity
-
-International guidelines historically recommended irradiating the entire pharyngeal axis plus the oral cavity. This approach achieves high mucosal control but at the cost of severe acute and late toxicity. The Ninth Hospital data demonstrate that **selective mucosal irradiation achieves equivalent mucosal control (~100%)** while dramatically reducing toxicity. This is consistent with the emerging global trend toward treatment de-intensification (e.g., ECOG 3311 for HPV+ OPC).
-
-#### Gap 3: The lymphatic drainage atlas is underutilized in existing guidelines
-
-While all guidelines acknowledge that nodal location provides clues about the primary site, none provide a systematic, comprehensive lymphatic drainage atlas. The site-specific atlas in Section 2.3 of this skill fills this gap, enabling clinicians to formalize the probabilistic reasoning that experienced specialists do intuitively.
-
-### 7.3 Position Statement
-
-The Ninth Hospital approach to cervical CUP:
-
-1. **Adheres to the same diagnostic rigor** mandated by all major guidelines (exhaustive workup, panendoscopy, directed biopsies, advanced imaging)
-2. **Adds NPC-specific screening** (EBV DNA, EBER ISH, nodal location algorithm) as a mandatory first-step decision point — a necessary adaptation for Chinese populations
-3. **Refines mucosal irradiation** from pan-pharyngeal to selective — consistent with the global trend toward de-escalation and supported by Ninth Hospital's published outcomes
-4. **Formalizes reverse-engineering of the primary** through a comprehensive lymphatic drainage atlas — a tool that enhances, rather than contradicts, guideline-directed care
-
-This approach is fully compatible with all major guidelines and represents a population-specific refinement that should be considered for inclusion in future editions of Chinese national guidelines.
+判断链：① 理想 ≤35 Gy，当前超 7 Gy ② 保声病例喉剂量优先→需要优化 ③ 尝试非共面弧降低喉剂量 ④ 如无法进一步降低→记录权衡。
 
 ---
 
-## Section 8 — Key References
+## 四、SBRT 正常组织约束表（Timmerman 2022, IJROBP）
 
-1. Dou S, Qian W, Ji Q, Wang Z, Zhu G, et al. Tailored multimodality therapy guided by a two-step decision making process for head-and-neck cancer of unknown primary. *Oncotarget*. 2016;7(26):40077-40087. PMID: 27223430. DOI: 10.18632/oncotarget.9492.
+> 来源：Timmerman R. A Story of Hypofractionation and the Table on the Wall. IJROBP 2022;112(1):4-21.
+> **数值为体积最大限量（Gy），除非标注"平均"。SBRT 的 BED 公式在每次 >6 Gy 时失真。**
 
-2. Dou S, et al. Long-term results of elective mucosal irradiation for head and neck cancer of unknown primary in Chinese population: The Shanghai Ninth People's Hospital experience. *Cancer Medicine*. 2020;9(5):1721-1729. PMID: 31953927. DOI: 10.1002/cam4.2856.
+### 4.1 头颈核心 OAR — SBRT（1-5 次）
 
-3. NCCN Clinical Practice Guidelines in Oncology: Head and Neck Cancers — Occult Primary. Version 3.2025.
+| OAR | 体积 | 1fx Vol | 1fx Dmax | 3fx Vol | 3fx Dmax | 5fx Vol | 5fx Dmax |
+|-----|------|:--:|:--:|:--:|:--:|:--:|:--:|
+| **视路** | <0.2cc | 8 | 10 | 15.3 | 17.4 | 23 | 25 |
+| **耳蜗** | — | — | 9 | — | 14.4 | — | 22 |
+| **脑干（不含延髓）** | <0.5cc | 10 | 15 | 15.9 | 23.1 | 23 | 31 |
+| **脊髓+延髓** | <0.35cc | 10 | 14 | 15.9 | 22.5 | 22 | 28 |
+| **食管**† | <5cc | 20 | 24 | 27.9 | 32.4 | 32.5 | 38 |
+| **臂丛** | <3cc | 13.6 | 16.4 | 22 | 26 | 27 | 32.5 |
+| **大血管** | <10cc | 31 | 37 | 39 | 45 | 47 | 53 |
+| **气管+大支气管**† | <4cc | 27.5 | 30 | 39 | 43 | 45 | 50 |
+| **皮肤** | <10cc | 25.5 | 27.5 | 31 | 33 | 36.5 | 38.5 |
 
-4. Gregoire V, et al. Delineation of the neck node levels for head and neck tumors. *Radiother Oncol*. 2014;110(1):172-181.
+> † 需避免环周照射。1fx 没有耳蜗体积限量，仅有点最大量。
 
-5. Lee NY, et al. OAR dose constraints for head and neck RT. *Int J Radiat Oncol Biol Phys*. 2018.
+### 4.2 头颈相关 OAR — SBRT 中高分割（8-15 次）
 
----
+| OAR | 体积 | 8fx | 10fx | 15fx |
+|-----|------|:--:|:--:|:--:|
+| **视路** | <0.2cc (1-8fx) / <0.5cc (10-15fx) | 27.2 | 30.6 | 39 |
+| **耳蜗** | <0.5cc | 26.4 | 25 | 30 |
+| **脑干** | <0.5cc (1-8fx) / <5cc (10-15fx) | 27.2 | 32 | 40 |
+| **脊髓** | <0.35cc (1-8fx) / <5cc (10-15fx) | 26.4 | 31 | 39 |
+| **喉** | <3cc | — | 30 | 34.5 |
+| **唾液腺（单侧）** | <7cc / 平均 | — | 14.1 / 17.7 | 18 / 22.5 |
+| **颞下颌关节** | <1cc | — | 37.7 | 48 |
+| **臂丛** | <3cc | 32.8 | 37 | 48 |
+| **食管**† | <5cc | 36.8 | 40 | 45 |
+| **大血管** | <10cc | 55.2 | 55.7 | 57 |
+| **气管**† | <5cc | 50 | 52 | 55.5 |
 
-## Section 9 — Clinical Algorithm Flowchart
+### 4.3 SBRT 并行器官限量
 
-```
-Cervical lymph node — metastatic carcinoma
-                 │
-    ┌────────────┴────────────┐
-    │                         │
-  Exhaustive workup        Primary found
-  (MRI, PET, EUA,           → Treat as known
-   bilateral NP Bx,          primary
-   tonsillectomy,
-   BOT biopsies,
-   EBV DNA, HPV/p16)
-    │
-    │  Primary NOT found
-    │
-    ▼
-┌─────────────────────────────────────┐
-│  STEP 1: Is this Occult NPC?        │
-│  ┌─────────────────────────────────┐│
-│  │ Nodal location:                 ││
-│  │  Level IIb / V / RP / >C1?      ││
-│  │  AND/OR                         ││
-│  │  EBV DNA (+) / EBER (+) ?       ││
-│  └─────────────────────────────────┘│
-│                                     │
-│         YES ────────┐     NO ───────┐
-└─────────────────────┼───────────────┘
-                      │               │
-                      ▼               ▼
-              ┌──────────────┐  ┌──────────────────┐
-              │ TREAT AS     │  │ STEP 2: Selective │
-              │ OCCULT NPC   │  │ Neck Dissection   │
-              │              │  │ + Selective       │
-              │ Full NPC RT  │  │ Mucosal RT        │
-              │ Bilateral    │  │ (ipsilateral      │
-              │ neck + NP    │  │ neck only)        │
-              │ neck + NP    │  │ neck only)        │
-              └──────────────┘  └──────────────────┘
-```
+| 器官 | 关键体积 | 3fx | 5fx | 8fx |
+|------|---------|:--:|:--:|:--:|
+| **肺-GTV（左右）** | 1500cc(男)/950cc(女) | 10.8 | 12.5 | 14.4 |
+| **肺 V-剂量 <37%** | — | V-11.4Gy | V-13.5Gy | V-15.2Gy |
+| **肝-GTV** | 700cc | 17.7 | 21.5 | 24.8 |
+| **肾皮质（左右）** | 200cc | 14.7 | 17.5 | 20 |
+
+> 并行器官关键体积 = 原始器官总体积的 1/3（缩容前），取较大者。
 
 ---
 
-## Section 10 — Emerging Evidence (2021-2026): Literature Supporting the Selective Approach
+## 五、OAR 约束的证据来源
 
-The past five years have seen a decisive global shift toward the selective, individualized approach embodied in this skill. Below is a summary of key publications and how their findings align with — and in some cases independently validate — the Ninth Hospital methodology.
-
-### 10.1 Evidence for Selective Mucosal Irradiation (Not Pan-Mucosal)
-
-| Study | Year | Journal | Key Finding |
-|-------|------|---------|-------------|
-| **Ghatasheh et al.** PMID:35905781 | 2022 | *Radiother Oncol* | IMRT enables risk-tailored individualized mucosal and nodal CTVs in HNCUP. Outcomes with selective approach are favorable. **Conclusion**: "Risk-tailored CTV selection is feasible and achieves excellent disease control." |
-| **Chen et al.** PMID:37844736 | 2023 | *Radiother Oncol* | Title: "No longer cutting down the tree to get an apple." Comprehensive review of RT paradigm refinement for CUP in the HPV era. **Key message**: Pan-mucosal RT is historical; modern RT should target only the most probable mucosal site(s). |
-| **Nielsen et al. (DAHANCA)** PMID:41016667 | 2025 | *Radiother Oncol* | Danish national study analyzing failure patterns in HNSCCUP. Two strategies evaluated: mucosal RT vs omission with targeted salvage. **Key finding**: Both strategies are viable; HPV and EBV status should guide which is chosen. The study validates that mucosal RT omission is safe in selected patients. |
-
-**Integration into skill**: These three studies independently confirm the core principle of Section 3 (Selective Mucosal Irradiation). The Danish national data specifically validate that HPV and EBV status — exactly the two viral markers in our Step 1/Step 2 algorithm — should determine mucosal RT strategy.
-
-### 10.2 Evidence for Unilateral (Not Bilateral) Neck Irradiation
-
-| Study | Year | Journal | Key Finding |
-|-------|------|---------|-------------|
-| **Oebel et al.** PMID:38192301 | 2024 | *Clin Transl Radiat Oncol* | Explicitly asked: "Is bilateral RT necessary for unilateral SCC-CUP?" Systematic review. **Conclusion**: Contralateral neck failure rates are very low (<5%) in patients with unilateral disease treated with ipsilateral-only RT. Bilateral RT provides no oncologic benefit for truly unilateral presentations. |
-| **Holm et al.** PMID:37815913 | 2023 | *Acta Oncol* | Proton vs photon planning study for HNCUP. **Incidental finding**: "New data suggest that omission of the contralateral nCTV and mCTV results in few recurrences." This was a secondary observation in a dosimetric study — yet it independently validates the ipsilateral approach. |
-| **Ludwig et al.** PMID:40415030 | 2025 | *Sci Rep* | Probabilistic model of bilateral lymphatic spread in HNSCC. **Finding**: Contralateral occult involvement probability is extremely low (<3%) for lateralized primary tumors with unilateral clinical nodal disease. The model supports personalized, risk-based CTV-N selection rather than routine bilateral coverage. |
-
-**Integration into skill**: The 2024 Oebel study directly asks the same question as our Section 3.5 (Ipsilateral Neck Principle) and arrives at the same answer — contralateral failure <5%. The 2025 Ludwig probabilistic model provides mathematical support: contralateral risk for lateralized primaries is below 3%. This moves the burden of proof: bilateral RT must now be justified, rather than being the default.
-
-### 10.3 Evidence for Post-Neck-Dissection Target Volumes
-
-| Study | Year | Journal | Key Finding |
-|-------|------|---------|-------------|
-| **Iqbal et al.** PMID:38545823 | 2024 | *Clin Otolaryngol* | Comprehensive narrative review of RT target volumes after neck dissection for HNSCCUP. **Key findings**: (1) Post-dissection CTV should include the dissected nodal basin plus one adjacent uninvolved level. (2) Mucosal RT target selection is independent of surgical approach and should be based on the same risk stratification used in definitive RT. (3) Evidence for routine contralateral neck RT after unilateral neck dissection is weak. |
-
-**Integration into skill**: This review directly supports our post-dissection approach in Section 3.5 extension (Retrograde Flow Rule) — the principle that dissected basins need wider coverage, but mucosal targets and contralateral decisions remain driven by the same diagnostic algorithm. The review's recommendation to include "one adjacent uninvolved level" aligns with our concept of abnormal post-dissection lymphatic flow.
-
-### 10.4 Evidence for Standardized Diagnostic Algorithms
-
-| Study | Year | Journal | Key Finding |
-|-------|------|---------|-------------|
-| **Townes et al.** PMID:42059064 | 2026 | *Otolaryngol Head Neck Surg* | Evaluated the impact of implementing a standardized institutional diagnostic algorithm for HPV-associated HNSCCUP. **Key finding**: Algorithm implementation significantly improved primary site detection rates and led to more consistent treatment selection. |
-
-**Integration into skill**: This study supports the very premise of this skill — that a standardized algorithmic approach improves diagnostic accuracy and treatment consistency. Our two-step algorithm (Step 1: exclude occult NPC → Step 2: reverse-engineer from nodal location + viral status) is precisely the type of structured decision tool that this study validates.
-
-### 10.5 Summary: The Global Trend Aligns with the Ninth Hospital Approach
-
-| Principle | Ninth Hospital (established) | Recent Literature (2021-2026) |
-|-----------|---------------------------|-------------------------------|
-| Selective over pan-mucosal RT | ✅ Since 2016 | ✅ Validated: Ghatasheh 2022, Chen 2023, Nielsen 2025 |
-| Ipsilateral neck over bilateral | ✅ Core principle | ✅ Validated: Oebel 2024, Holm 2023, Ludwig 2025 |
-| Post-dissection CTV extension | ✅ Retrograde flow rule | ✅ Supported: Iqbal 2024 |
-| Standardized diagnostic algorithm | ✅ Two-step decision | ✅ Validated: Townes 2026 |
-| Viral status (EBV/HPV) guides strategy | ✅ Step 1/Step 2 | ✅ Validated: Nielsen 2025 (DAHANCA) |
-
-**Bottom line**: The principles embedded in this skill since 2016 — selective mucosal RT, ipsilateral neck, viral-guided stratification — are now being independently validated by international multicenter studies. The global standard is moving toward the Ninth Hospital approach, not away from it.
+| 约束 | 原始证据 | 把握 |
+|------|---------|:--:|
+| 脊髓 ≤45 Gy | 大鼠/豚鼠模型外推人类 | ⚠️ |
+| 脑干 ≤54 Gy | 动物模型 + 回顾性病例 | ⚠️ |
+| 视神经 ≤55 Gy | QUANTEC 回顾性 | ⚠️ |
+| 腮腺 Dmean ≤26 Gy | **多个 IMRT 临床系列** | ✅ |
+| 下颌骨 Dmax ≤70 Gy | 临床回顾（混杂因素多） | ⚠️ |
+| 晶状体 ≤6-10 Gy | **良好剂量-效应曲线** | ✅ |
+| 声门喉 Dmean ≤35 Gy | 临床系列（保声病例） | ✅ |
+| 颞叶 ≤65-72 Gy | NPC 回顾性系列 | ⚠️ |
+| SBRT 全部约束 | **Timmerman 2022 IJROBP** — 多中心共识 | ✅ |
 
 ---
 
-*This clinical framework was developed through the clinical experience and published research of the Department of Radiation Oncology, Shanghai Ninth People's Hospital, Shanghai Jiao Tong University School of Medicine. It is intended for educational and clinical reference purposes.*
+## 六、给住院医生的一句话
 
+> **"先看硬约束——这五条不过，其他全白看。再看靶区 D98%——不够就别往下走。软约束超了，看超多少、超哪个、有什么优先级。理想限量是目标，可接受剂量是底线——两者之间是用修正因子加临床判断的灰色地带。最后——瘫痪比口干更不可接受，复发比 ORN 更不可接受。"**
 
 ---
 
-## 附：靶区规划摘要（可复制粘贴入首次病程录）
+## 参考文献
 
-> 治疗前写入住院病史"诊疗计划"。只列实际使用的 CTV 层级，每层附理由。豁免区和加量区均说明原因。
-
-```
-═══════════════════════════════
-  放疗靶区规划
-═══════════════════════════════
-诊断：______  pT__N__M__（AJCC 第 9 版）
-分期判断：______（为何 T__ 而非 T__：______）
-手术：______
-PORT 指征：______
-降级依据：______（如适用）
-
-方案：□ 术后 PORT  □ 根治性 RT   ___ Gy / ___ fx
-
-CTV___：______（___ Gy — 理由：______）
-加量：______  ___ Gy（理由：□R1/R2  □ENE+  □手术不易切净  □T4/N3 临近关键结构）
-豁免：______（理由：______）
-
-主治：______  日期：______
-═══════════════════════════════
-
-注：四类加量指征：①R1/R2切缘 ②ENE+淋巴结 ③手术不易切净区(茎乳孔/腮腺深叶/颅底/翼腭窝/颏结节/前上门牙-鼻底硬腭) ④不手术T4/T4b临近颅底/脑膜/眼眶/颈动脉。病理切缘阴性不等于肿瘤床绝对安全——手术记录中未描述但肿瘤曾临近上述区域时仍需考虑加量。
+| 文献 | 来源 |
+|------|------|
+| Timmerman R. A Story of Hypofractionation and the Table on the Wall. *IJROBP* 2022;112(1):4-21 | SBRT 约束金标准 |
+| QUANTEC papers. *IJROBP* 2010;76(3 Suppl) | 常规分割约束基础 |
+| AAPM TG-101. SBRT constraints. 2010 | SBRT 早期约束 |
+| UK SABR 2022. PMID:35272913 | SBRT 英国共识 |
+| H&N IMRT clinical protocol OAR priority table | 头颈 IMRT 优先级分层共识 |
