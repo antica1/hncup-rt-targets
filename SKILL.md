@@ -1,5 +1,5 @@
 ---
-name: cervical-cup-rt-targets
+name: HNCUP-rt-targets
 description: "原发不明颈部转移癌HNCUP靶区勾画——选择性黏膜、EBV/HPV分层、颈清后逆流规则。True CUP RT target delineation — selective mucosal irradiation."
 version: 1.0.0
 author: Dou Shengjin, Zhu Guopei / Shanghai Ninth People's Hospital
@@ -303,7 +303,7 @@ Based on the two-step decision process and selective mucosal irradiation (Dou S 
 |---------|------|---------------|
 | Occult NPC pathway (nasopharynx) | 69.96 Gy | 33 fx (SIB) |
 | Selective mucosal irradiation (non-NPC) | 66 Gy | 33 fx |
-| Ipsilateral elective neck | 54 Gy | 30-33 fx |
+| Ipsilateral elective neck | 54-60 Gy | 30-33 fx |
 | Contralateral neck (if indicated) | 54 Gy | 30-33 fx |
 | Neck dissection bed (high-risk) | 60-66 Gy | 30-33 fx |
 
